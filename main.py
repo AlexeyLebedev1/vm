@@ -50,12 +50,14 @@ def solver(I, V, f, c, L, dt, C, T, user_action=None):
     u_nm1[:] = u_n
     u_n[:] = u
 
+    cr = 0
+
     for n in range(1, Nt):
         # Update all inner points at time t[n+1]
         for i in range(1, Nx):
             u[i] = - u_nm1[i] + 2 * u_n[i] + \
                    C2 * (u_n[i - 1] - 2 * u_n[i] + u_n[i + 1]) + \
-                   dt ** 2 * f(x[i], t[n])
+                   dt ** 2 * f(x[i], t[n]) 
 
         # Insert boundary conditions
         u[0] = 0
@@ -68,7 +70,10 @@ def solver(I, V, f, c, L, dt, C, T, user_action=None):
         u_nm1[:] = u_n
         u_n[:] = u
 
-    return u, x, t
+        graph_axes.clear()
+        graph_axes.grid()
+        graph_axes.plot(x, u, 'r')
+        plt.pause(0.05)
 
 
 fig, graph_axes = plt.subplots()
@@ -87,7 +92,7 @@ def set_value(var, text):
 
 # User parameters
 
-l = 0.75
+l = 0.80
 lbox = TextBox(plt.axes([0.15, 0.25, 0.10, 0.07]), 'l = ', initial=l)
 lbox.on_submit(lambda text: (
     set_value('l', text),
@@ -126,8 +131,7 @@ def solve_and_draw(event):
         #TODO: plot u(x) in time t[n-1]
         pass
 
-    u, x, t = solver(I, 0, 0, a, l, dt, 0.85, T, viz)
-    graph_axes.plot(x, u, 'r')
+    solver(I, 0, 0, a, l, dt, 0.85, T, viz)
 
 
 solve_btn = Button(plt.axes([0.37, 0.05, 0.28, 0.075]), 'solve')
