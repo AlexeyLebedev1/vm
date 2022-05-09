@@ -1,4 +1,5 @@
 import time
+from copy import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,13 +8,13 @@ from matplotlib.widgets import Button, TextBox
 plt.rcParams.update({'figure.figsize': '7.5, 6', "figure.facecolor": 'lightblue', 'axes.edgecolor': 'black'})
 
 
-def solver(I, V, f, c, L, dt, C, T, user_action=None):
+def solver(I, V, f, c, L, dt, dx, T, user_action=None):
     """Solve u_tt=c^2*u_xx + f on (0,L)x(0,T]."""
     Nt = int(round(T / dt))
     t = np.linspace(0, Nt * dt, Nt + 1)  # Mesh points in time
-    dx = dt * c / float(C)
     Nx = int(round(L / dx))
     x = np.linspace(0, L, Nx + 1)  # Mesh points in space
+    C = c * dt / dx
     C2 = C ** 2  # Help variable in the scheme
     # Make sure dx and dt are compatible with x and t
     dt = t[1] - t[0]
@@ -75,7 +76,7 @@ fig, graph_axes = plt.subplots()
 graph_axes.grid()
 fig.subplots_adjust(left=0.12, right=0.93, top=0.98, bottom=0.4)
 graph_axes.set_xlabel('X')
-graph_axes.set_ylabel('T')
+graph_axes.set_ylabel('U')
 
 
 def set_value(var, text):
@@ -89,9 +90,7 @@ def set_value(var, text):
 
 l = 0.75
 lbox = TextBox(plt.axes([0.15, 0.25, 0.10, 0.07]), 'l = ', initial=l)
-lbox.on_submit(lambda text: (
-    set_value('l', text),
-    graph_axes.set_xlim(l)))
+lbox.on_submit(lambda text: set_value('l', text))
 
 T = 0.1
 Tbox = TextBox(plt.axes([0.15, 0.15, 0.10, 0.07]), 'T = ', initial=T)
@@ -122,12 +121,22 @@ def solve_and_draw(event):
     def I(x):
         return b * x / x0 if x < x0 else b / (l - x0) * (l - x)
 
-    def viz(u, x, t, n):
-        #TODO: plot u(x) in time t[n-1]
-        pass
 
-    u, x, t = solver(I, 0, 0, a, l, dt, 0.85, T, viz)
-    graph_axes.plot(x, u, 'r')
+    def viz(u, x, t, n):
+        global I0
+        graph_axes.clear()
+        graph_axes.set_xlim([0, l])
+        graph_axes.set_ylim([-1.2 * b, 1.2 * b])
+        graph_axes.grid()
+        if n == 0:
+            I0 = copy(u)
+        graph_axes.plot(x, u, 'r')
+        graph_axes.plot(x, I0, 'b')
+        graph_axes.legend(['t=%.3f'% t[n]], loc='lower left')
+        plt.pause(0.00005)
+
+
+    solver(I, 0, 0, a, l, dt, dx, T, viz)
 
 
 solve_btn = Button(plt.axes([0.37, 0.05, 0.28, 0.075]), 'solve')
