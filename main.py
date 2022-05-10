@@ -8,13 +8,13 @@ from matplotlib.widgets import Button, TextBox
 plt.rcParams.update({'figure.figsize': '7.5, 6', "figure.facecolor": 'lightblue', 'axes.edgecolor': 'black'})
 
 
-def solver(I, V, f, c, L, dt, dx, T, user_action=None):
-    """Solve u_tt=c^2*u_xx + f on (0,L)x(0,T]."""
+def solver(I, V, f, a, L, dt, C, T, user_action=None):
+    """Solve u_tt=a^2*u_xx + f on (0,L)x(0,T]."""
     Nt = int(round(T / dt))
     t = np.linspace(0, Nt * dt, Nt + 1)  # Mesh points in time
+    dx = dt * a / C
     Nx = int(round(L / dx))
     x = np.linspace(0, L, Nx + 1)  # Mesh points in space
-    C = c * dt / dx
     C2 = C ** 2  # Help variable in the scheme
     # Make sure dx and dt are compatible with x and t
     dt = t[1] - t[0]
@@ -96,9 +96,9 @@ T = 0.1
 Tbox = TextBox(plt.axes([0.15, 0.15, 0.10, 0.07]), 'T = ', initial=T)
 Tbox.on_submit(lambda text: set_value('T', text))
 
-dx = 0.001
-dxbox = TextBox(plt.axes([0.38, 0.15, 0.10, 0.07]), 'dx = ', initial=dx)
-dxbox.on_submit(lambda text: set_value('dx', text))
+C = 0.85
+Cbox = TextBox(plt.axes([0.38, 0.15, 0.10, 0.07]), 'C = ', initial=C)
+Cbox.on_submit(lambda text: set_value('C', text))
 
 dt = 0.001
 dtbox = TextBox(plt.axes([0.38, 0.25, 0.10, 0.07]), 'dt = ', initial=dt)
@@ -136,7 +136,7 @@ def solve_and_draw(event):
         plt.pause(0.00005)
 
 
-    solver(I, 0, 0, a, l, dt, dx, T, viz)
+    solver(I, 0, 0, a, l, dt, C, T, viz)
 
 
 solve_btn = Button(plt.axes([0.37, 0.05, 0.28, 0.075]), 'solve')
